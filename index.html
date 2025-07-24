@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Countdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: black;
+      font-family: 'Roboto', sans-serif;
+      color: rgb(232, 44, 42);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      height: 5vh;
+      margin: 0;
+      font-size: 3vh;
+      line-height: 5vh;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .countdown {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      align-items: center;
+      height: 95vh;
+    }
+
+    .time-section {
+      position: relative;
+      width: 100%;
+      height: calc(95vh / 5);
+      text-align: center;
+    }
+
+    .time-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8vh;
+      color: rgba(219, 18, 42, 0.25);
+      text-shadow: 1px 1px 2px rgba(255, 0, 0, 0.2);
+      z-index: 0;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .time-value {
+      position: relative;
+      z-index: 1;
+      font-size: 10vh;
+      font-weight: bold;
+      line-height: 100%;
+    }
+
+    .time-label-alt {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8vh;
+      color: rgb(219, 18, 42, .5);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      z-index: 0;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .time-value-alt {
+      position: relative;
+      z-index: 1;
+      font-size: 10vh;
+      font-weight: bold;
+      line-height: 100%;
+    }
+
+    .toggle-button {
+      position: absolute;
+      top: 1vh;
+      right: 2vw;
+      background: white;
+      /* border: 2px solid rgb(250, 226, 226); */
+      border: transparent;
+      border-radius: 12px;
+      color: rgb(250, 226, 226);
+      font-size: 1vh;
+      padding: 0.5vh 1vw;
+      cursor: pointer;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <button id="toggleButton" class="toggle-button"></button>
+  <h1 id="title">Countdown</h1>
+  <div class="countdown">
+    <div class="time-section">
+      <div class="time-label" id="label1">DAYS</div>
+      <div class="time-value" id="days">00</div>
+    </div>
+    <div class="time-section">
+      <div class="time-label" id="label2">HOURS</div>
+      <div class="time-value" id="hours">00</div>
+    </div>
+    <div class="time-section">
+      <div class="time-label" id="label3">MINUTES</div>
+      <div class="time-value" id="minutes">00</div>
+    </div>
+    <div class="time-section">
+      <div class="time-label" id="label4">SECONDS</div>
+      <div class="time-value" id="seconds">00</div>
+    </div>
+    <div class="time-section">
+      <div class="time-label" id="label5">MILLISECONDS</div>
+      <div class="time-value" id="milliseconds">00.0</div>
+    </div>
+  </div>
+
+  <script>
+    const mainTargetDate = new Date("2025-09-23T06:59:59.999Z").getTime(); 
+    const altTargetDate = new Date("2025-08-26T06:59:59.999Z").getTime(); // LPT
+
+    let currentTargetDate = mainTargetDate;
+    let isAltActive = false;
+    let countingUp = false;
+    let flashing = false;
+
+    const toggleButton = document.getElementById("toggleButton");
+    toggleButton.addEventListener("click", () => {
+      if (Date.now() > altTargetDate) return;
+      isAltActive = !isAltActive;
+      currentTargetDate = isAltActive ? altTargetDate : mainTargetDate;
+      document.getElementById("title").textContent = isAltActive ? "LPT" : "Countdown";
+
+      for (let i = 1; i <= 5; i++) {
+        // document.getElementById("label" + i).style.display = isAltActive ? "" : "block";
+        if (isAltActive){
+          document.getElementById("label" + i).classList.replace('time-label', 'time-label-alt')
+          document.body.style.backgroundColor = "rgb(62, 43, 46, 1)"
+        } else {
+          document.getElementById("label" + i).classList.replace('time-label-alt', 'time-label')
+          document.body.style.backgroundColor = "black"
+        }
+      }
+
+      
+      countingUp = false;
+      flashing = false;
+    });
+
+    function updateTimer() {
+      const now = Date.now();
+      let diff = currentTargetDate - now;
+
+      if (diff <= 0 && !countingUp && !flashing) {
+        flashing = true;
+        startFlashing(() => {
+          countingUp = true;
+          document.body.style.backgroundColor = "white";
+          document.body.style.color = "red";
+          document.getElementById("title").textContent = isAltActive ? "Testing Since" : "Live For";
+          toggleButton.style.display = "none";
+        });
+        
+        return;
+      }
+
+      if (countingUp) {
+        diff = now - currentTargetDate;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      const ms = ((diff % 1000) / 10).toFixed(0).padStart(2, '0');
+      const msLastDigit = (diff % 10).toString().padStart(1, '0');
+
+      document.getElementById("days").textContent = String(days).padStart(2, '0');
+      document.getElementById("hours").textContent = String(hours).padStart(2, '0');
+      document.getElementById("minutes").textContent = String(minutes).padStart(2, '0');
+      document.getElementById("seconds").textContent = String(seconds).padStart(2, '0');
+      document.getElementById("milliseconds").textContent = `${ms}.${msLastDigit}`;
+    }
+
+    function startFlashing(callback) {
+      let flashes = 0;
+      const maxFlashes = 6;
+      const interval = setInterval(() => {
+        document.body.style.backgroundColor = (flashes % 2 === 0) ? "red" : "white";
+        flashes++;
+        if (flashes >= maxFlashes) {
+          clearInterval(interval);
+          callback();
+        }
+      }, 300);
+    }
+
+    setInterval(updateTimer, 50);
+  </script>
+</body>
+</html>
