@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Countdown</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet"> -->
   <style>
     * { box-sizing: border-box; }
 
@@ -105,8 +106,7 @@
   </style>
 </head>
 <body>
-  <button id="toggleButton" class="toggle-button"></button>
-  <h1 id="title">Countdown</h1>
+  <h1 id="title">Since</h1>
   <div class="countdown">
     <div class="time-section">
       <div class="time-label" id="label1">DAYS</div>
@@ -132,41 +132,38 @@
 
   <script>
     const mainTargetDate = new Date("2025-09-23T06:59:59.999Z").getTime(); 
-    // const altTargetDate = new Date("2025-08-26T06:59:59.999Z").getTime(); // LPT
-    // const altTargetDate = new Date("2025-08-29T06:59:59.999Z").getTime(); // LPT
-    const altTargetDate = new Date("2025-09-02T06:59:59.999Z").getTime(); // LPT
+    const altTargetDate = new Date("2025-08-26T06:59:59.999Z").getTime(); // LPT
+    const altDate = new Date("2026-04-03T06:59:59.999Z").getTime();
 
     let currentTargetDate = mainTargetDate;
+    let anotherTargetDate = altDate;
     let isAltActive = false;
     let countingUp = false;
     let flashing = false;
 
-    const toggleButton = document.getElementById("toggleButton");
-    toggleButton.addEventListener("click", () => {
-      if (Date.now() > altTargetDate) return;
-      isAltActive = !isAltActive;
-      currentTargetDate = isAltActive ? altTargetDate : mainTargetDate;
-      document.getElementById("title").textContent = isAltActive ? "LPT" : "Countdown";
+    function businessDaysUntil(targetDateString){
+      const start = new Date();
+      const end = new Date(targetDateString);
 
-      for (let i = 1; i <= 5; i++) {
-        // document.getElementById("label" + i).style.display = isAltActive ? "" : "block";
-        if (isAltActive){
-          document.getElementById("label" + i).classList.replace('time-label', 'time-label-alt')
-          document.body.style.backgroundColor = "rgb(62, 43, 46, 1)"
-        } else {
-          document.getElementById("label" + i).classList.replace('time-label-alt', 'time-label')
-          document.body.style.backgroundColor = "black"
+      if (end < start) return 0;
+
+      let count = 0;
+      const current = new Date(start);
+
+      while (current <= end) {
+        const day = current.getDay();
+        if (day !== 0 && day !== 6) { // Not Sunday (0) or Saturday (6)
+          count++;
         }
+        current.setDate(current.getDate() + 1);
       }
-
-      
-      countingUp = false;
-      flashing = false;
-    });
+      return count;
+    } 
 
     function updateTimer() {
       const now = Date.now();
-      let diff = currentTargetDate - now;
+      let diff = now - currentTargetDate;
+      let adiff = anotherTargetDate - now;
 
       if (diff <= 0 && !countingUp && !flashing) {
         flashing = true;
@@ -186,17 +183,21 @@
       }
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const adays = Math.floor(adiff / (1000 * 60 * 60 * 24));
+      const bdays = businessDaysUntil(altDate);
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
       const ms = ((diff % 1000) / 10).toFixed(0).padStart(2, '0');
       const msLastDigit = (diff % 10).toString().padStart(1, '0');
 
+      aMilli = (ms % 2 === 0) ? String(adays).padStart(2, '0') + String(bdays).padStart(2, '0') : String(bdays).padStart(2, '0') + String(adays).padStart(2, '0');
+
       document.getElementById("days").textContent = String(days).padStart(2, '0');
       document.getElementById("hours").textContent = String(hours).padStart(2, '0');
       document.getElementById("minutes").textContent = String(minutes).padStart(2, '0');
       document.getElementById("seconds").textContent = String(seconds).padStart(2, '0');
-      document.getElementById("milliseconds").textContent = `${ms}.${msLastDigit}`;
+      document.getElementById("milliseconds").textContent = `${ms}.${msLastDigit}` + aMilli;
     }
 
     function startFlashing(callback) {
